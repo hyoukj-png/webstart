@@ -18,6 +18,7 @@
 - 기본은 Claude Code CLI 기준이지만, Codex 모드도 함께 지원합니다.
 - 검수 파이프라인은 공용 `audit runtime`을 사용합니다.
 - 설치는 기본적으로 `bash install.sh` 한 번으로 끝납니다.
+- 다른 프로젝트나 다른 에이전트는 `AGENT-PORTABILITY.md`부터 읽는 것이 가장 빠릅니다.
 
 ---
 
@@ -117,6 +118,8 @@ WebStart는 이 문제를 파이프라인으로 해결합니다.
 | `/audit-tech` | 기술 스택, 성능 진단 | `_audit/tech-report.md` |
 | `/audit-db` | 데이터 구조 유추, API 증거 분석 | `_audit/db-report.md` |
 
+Codex 호환 레이어는 별도의 `codex-skills/`와 `CODEX-*` 문서에 있으며, 현재는 공용 진입용 `webstart` 안내 중심입니다.
+
 ---
 
 ## 설치 방법
@@ -176,7 +179,7 @@ bash scripts/lint-docs.sh
 bash install.sh --agent codex
 ```
 
-Codex 모드에서는 `CODEX-GUIDE.md`와 `CODEX-MAPPING.md`를 먼저 읽는 것이 좋습니다.
+Codex 모드에서는 `AGENT-PORTABILITY.md`를 먼저 읽고, 이어서 `CODEX-GUIDE.md`와 `CODEX-MAPPING.md`를 보면 됩니다.
 
 ---
 
@@ -252,10 +255,15 @@ WebStart/
 ├── README.md
 ├── SETUP-GUIDE.md
 ├── CHANGELOG.md
+├── AGENT-PORTABILITY.md
 ├── agency-ai-agent-plan.md
 ├── web-audit-agent-plan.md
+├── CODEX-GUIDE.md
+├── CODEX-MAPPING.md
+├── CODEX-QUICKSTART.md
 ├── install.sh
 ├── skills/
+├── codex-skills/
 ├── scripts/
 └── audit-runtime/
 ```
@@ -422,7 +430,7 @@ Critical 버그가 있으면 `blocked`로 기록되고 `/devops`로 넘어가지
 - 검수 파이프라인은 CLI 사용을 권장합니다.
 - 특히 `/audit*` 계열은 `audit runtime`이 필요해서 CLI 쪽이 맞습니다.
 - Codex는 `bash install.sh --agent codex`로 별도 경로를 사용합니다.
-- Codex용 안내는 `CODEX-GUIDE.md`, `CODEX-MAPPING.md`, `CODEX-QUICKSTART.md`를 기준으로 합니다.
+- Codex용 안내는 `AGENT-PORTABILITY.md`를 먼저 보고, `CODEX-GUIDE.md`, `CODEX-MAPPING.md`, `CODEX-QUICKSTART.md`를 이어서 보면 됩니다.
 
 ---
 
@@ -435,6 +443,7 @@ Critical 버그가 있으면 `blocked`로 기록되고 `/devops`로 넘어가지
 | `CHANGELOG.md` | 버전별 변경 이력 |
 | `agency-ai-agent-plan.md` | 제작 파이프라인 설계 |
 | `web-audit-agent-plan.md` | 검수 파이프라인 설계 |
+| `AGENT-PORTABILITY.md` | 에이전트 공용 포터빌리티 안내 |
 | `CODEX-GUIDE.md` | Codex용 운영 가이드 |
 | `CODEX-MAPPING.md` | Claude ↔ Codex 대응표 |
 | `CODEX-QUICKSTART.md` | Codex 빠른 시작 |

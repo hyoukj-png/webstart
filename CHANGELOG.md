@@ -15,6 +15,8 @@
 
 - `SETUP-GUIDE.md`를 v2.2 기준으로 갱신
 - `agency-ai-agent-plan.md`를 `status.json` 기반 파이프라인 설계로 업데이트
+- `AGENT-PORTABILITY.md`를 추가해 Claude 원본, Codex 호환 레이어, 역사 문서를 분리
+- `CODEX-GUIDE.md` / `CODEX-MAPPING.md` / `CODEX-QUICKSTART.md`를 추가해 Codex 진입점을 명시
 - 내부 검토 문서(`IMPROVEMENT-REPORT.md`, `REVIEW-REPORT.md`, `REVIEW-REPORT-V2.md`, `SESSION-REPORT.md`, `AUDIT-AUTOMATION-V3.md`)를 repo 내부 참고 문서로 유지
 - `install.sh`에서 문서 lint를 자동 실행하고, runtime/skill 복사 시 캐시 파일을 제외
 
@@ -26,6 +28,11 @@
 | `scripts/lint-docs.sh` | 신규 |
 | `SETUP-GUIDE.md` | 수정 (v2.2 가이드 반영) |
 | `agency-ai-agent-plan.md` | 수정 (status.json 기반 상태 관리) |
+| `AGENT-PORTABILITY.md` | 신규 (에이전트 공용 포터빌리티 안내) |
+| `CODEX-GUIDE.md` | 신규 (Codex 운영 가이드) |
+| `CODEX-MAPPING.md` | 신규 (Claude ↔ Codex 대응표) |
+| `CODEX-QUICKSTART.md` | 신규 (Codex 빠른 시작) |
+| `codex-skills/webstart/SKILL.md` | 신규 (Codex 호환 skill) |
 | `skills/webstart/SKILL.md` | 수정 (13개 스킬 체계, status.json 템플릿) |
 | `skills/pm/SKILL.md` | 수정 (status.json 원본 규칙) |
 | `skills/design/SKILL.md` | 수정 (status.json 게이트/리셋 규칙) |

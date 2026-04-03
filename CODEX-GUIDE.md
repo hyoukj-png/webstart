@@ -11,6 +11,7 @@
 Codex에서 이 프로젝트를 쓰려면, Claude 전용 명령 흐름을 그대로 따라가기보다 Codex용 호환 레이어를 읽는 편이 낫다.
 
 이 가이드는 Codex가 WebStart 저장소를 처음 열었을 때 읽어야 할 기준 문서다.
+공용 기준이 필요하면 먼저 `AGENT-PORTABILITY.md`를 읽는다.
 
 ---
 
@@ -29,6 +30,7 @@ bash install.sh --agent codex
 - `codex-skills/webstart/SKILL.md`가 `~/.codex/skills/webstart/`로 복사된다.
 - 공용 `audit-runtime/`이 `~/.webstart/audit-runtime`에 설치된다.
 - 문서 일관성 검사가 실행된다.
+- 먼저 공용 기준은 `AGENT-PORTABILITY.md`를 보고, 이어서 이 가이드를 읽는다.
 
 ### 선택 사항
 
@@ -72,6 +74,7 @@ bash install.sh --agent codex --skip-audit-runtime
 
 - `README.md`
 - `SETUP-GUIDE.md`
+- `AGENT-PORTABILITY.md`
 - `CODEX-MAPPING.md`
 - `agency-ai-agent-plan.md`
 - `web-audit-agent-plan.md`
@@ -83,4 +86,3 @@ bash install.sh --agent codex --skip-audit-runtime
 - Claude 전용 문서를 Codex용으로 그대로 복제해 다시 만들지 않는다.
 - 문서 충돌이 생기면 Claude 원본을 수정하기 전에 Codex 가이드를 먼저 맞춘다.
 - 에이전트별 설치 옵션을 바꿀 때는 `install.sh`와 이 가이드를 함께 갱신한다.
-

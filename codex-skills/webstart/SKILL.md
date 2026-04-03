@@ -9,6 +9,7 @@ Codex에서 이 저장소를 다룰 때는 Claude 전용 명령 흐름을 그대
 
 ## 우선 읽을 문서
 
+- `AGENT-PORTABILITY.md`
 - `CODEX-GUIDE.md`
 - `CODEX-MAPPING.md`
 - `README.md`
@@ -35,4 +36,3 @@ bash install.sh --agent codex
 ## 대응표
 
 필요하면 `CODEX-MAPPING.md`를 따라 Claude 명령과 Codex 절차를 대응시킨다.
-

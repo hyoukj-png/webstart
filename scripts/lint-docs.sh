@@ -77,6 +77,16 @@ if [ -f README.md ] && command -v git >/dev/null 2>&1; then
   fi
 fi
 
+if grep -q "Codex" README.md && ! grep -q "AGENT-PORTABILITY.md" README.md; then
+  echo "[ERROR] README.md 에 Codex 언급은 있는데 AGENT-PORTABILITY.md 안내가 없음"
+  ERRORS=$((ERRORS + 1))
+fi
+
+if grep -q "Codex" SETUP-GUIDE.md && ! grep -q "AGENT-PORTABILITY.md" SETUP-GUIDE.md; then
+  echo "[ERROR] SETUP-GUIDE.md 에 Codex 언급은 있는데 AGENT-PORTABILITY.md 안내가 없음"
+  ERRORS=$((ERRORS + 1))
+fi
+
 check_no_match "@pm|@design|@contract|@fe|@be|@qa|@devops" \
   "@command 방식 발견 (/command 로 유지 필요)" \
   SETUP-GUIDE.md \

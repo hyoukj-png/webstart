@@ -16,6 +16,7 @@ bash install.sh --agent codex
 3. 가이드를 읽는다.
 
 ```bash
+sed -n '1,120p' AGENT-PORTABILITY.md
 sed -n '1,120p' CODEX-GUIDE.md
 sed -n '1,120p' CODEX-MAPPING.md
 ```
@@ -31,4 +32,3 @@ sed -n '1,120p' CODEX-MAPPING.md
 ~/.webstart/bin/webstart-audit doctor
 bash scripts/lint-docs.sh
 ```
-

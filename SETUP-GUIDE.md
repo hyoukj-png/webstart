@@ -10,6 +10,8 @@
 
 1인 웹 에이전시를 위한 AI 에이전트 시스템. 두 개의 독립 파이프라인으로 구성.
 
+다른 프로젝트나 다른 에이전트가 이 저장소를 읽을 때는 먼저 [AGENT-PORTABILITY.md](./AGENT-PORTABILITY.md)를 확인하면 된다.
+
 ```
 [검수 파이프라인]                    [제작 파이프라인]
 기존 사이트 분석·역설계             신규 사이트 기획·제작·배포
@@ -52,6 +54,7 @@
 | Git | `git --version` | https://git-scm.com |
 
 Codex 모드로만 쓸 경우에는 `bash install.sh --agent codex`를 사용하면 되고, Claude Code CLI는 필요하지 않다.
+이때는 [AGENT-PORTABILITY.md](./AGENT-PORTABILITY.md)를 먼저 읽고, 그다음 [CODEX-GUIDE.md](./CODEX-GUIDE.md)와 [CODEX-MAPPING.md](./CODEX-MAPPING.md)를 보면 된다.
 
 ---
 
@@ -92,6 +95,7 @@ bash install.sh --agent codex
 ```
 
 Codex 모드에서는 `CODEX-GUIDE.md`와 `CODEX-MAPPING.md`를 먼저 확인하면 된다.
+공용 진입 안내는 [AGENT-PORTABILITY.md](./AGENT-PORTABILITY.md)다.
 
 ### 설치 확인
 
@@ -344,8 +348,12 @@ _agency/
 WebStart/
 ├── SETUP-GUIDE.md                ← 본 문서 (설치 및 사용 가이드)
 ├── CHANGELOG.md                  ← 버전별 변경 이력
+├── AGENT-PORTABILITY.md          ← 에이전트 공용 포터빌리티 안내
 ├── agency-ai-agent-plan.md       ← 제작 파이프라인 설계 문서
 ├── web-audit-agent-plan.md       ← 검수 파이프라인 설계 문서
+├── CODEX-GUIDE.md                ← Codex용 운영 가이드
+├── CODEX-MAPPING.md              ← Claude ↔ Codex 대응표
+├── CODEX-QUICKSTART.md           ← Codex 빠른 시작
 ├── install.sh                    ← 자동 설치 스크립트
 ├── skills/
 │   ├── webstart/SKILL.md         ← 프로젝트 초기 세팅
@@ -361,6 +369,8 @@ WebStart/
 │   ├── audit-ia/SKILL.md         ← IA 분석
 │   ├── audit-tech/SKILL.md       ← 기술 분석
 │   └── audit-db/SKILL.md         ← DB 유추
+├── codex-skills/
+│   └── webstart/SKILL.md         ← Codex 호환 스킬
 └── test-project/                 ← 테스트용 예제
 ```
 
@@ -572,6 +582,7 @@ cat _audit/status.md    # 검수 파이프라인
 | [IMPROVEMENT-REPORT.md](./IMPROVEMENT-REPORT.md) | 후속 개선점 정리 |
 | [REVIEW-REPORT.md](./REVIEW-REPORT.md) | 1차 전수 검토 결과(역사) |
 | [REVIEW-REPORT-V2.md](./REVIEW-REPORT-V2.md) | 2차 전수 검토 결과(현행) |
+| [AGENT-PORTABILITY.md](./AGENT-PORTABILITY.md) | 에이전트 공용 포터빌리티 안내 |
 | [CODEX-GUIDE.md](./CODEX-GUIDE.md) | Codex용 운영 가이드 |
 | [CODEX-MAPPING.md](./CODEX-MAPPING.md) | Claude ↔ Codex 대응표 |
 | [CODEX-QUICKSTART.md](./CODEX-QUICKSTART.md) | Codex 빠른 시작 |
