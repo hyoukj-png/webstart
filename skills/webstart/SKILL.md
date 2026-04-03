@@ -3,7 +3,7 @@ name: webstart
 description: |
   1인 웹 에이전시 AI 에이전트 시스템 자동 세팅.
   새 프로젝트 폴더에서 /webstart를 실행하면
-  6개 에이전트(PM, 디자이너, FE, BE, QA, DevOps) 역할에 맞는
+  13개 에이전트(제작 8개 + 검수 5개) 시스템에 맞는
   CLAUDE.md, 템플릿 파일, 폴더 구조를 자동으로 생성합니다.
   인수(args)로 프로젝트 이름과 기술 스택을 지정할 수 있습니다.
   예: /webstart my-client nextjs
@@ -40,7 +40,8 @@ args에서 프로젝트 이름과 스택을 파싱합니다.
 ├── CLAUDE.md                  ← 프로젝트 전역 에이전트 규칙
 ├── _agency/
 │   ├── client-brief.md        ← 클라이언트 브리프 입력 템플릿 (webstart 생성)
-│   ├── status.md              ← 파이프라인 진행 상태 (/pm 최초 생성, 각 스킬 업데이트)
+│   ├── status.json            ← 파이프라인 상태 원본 (webstart 생성, 각 스킬 업데이트)
+│   ├── status.md              ← 사람이 읽는 상태 뷰 (status.json 기준으로 갱신)
 │   ├── sitemap.md             ← /pm 산출물
 │   ├── design-system.md       ← /design 산출물
 │   ├── contract.md            ← /contract 산출물
@@ -180,6 +181,42 @@ NAS 배포 시 ~/.claude/nas-hosting-guide.md 준수.
 - [ ] 참고 사이트: 
 
 ## 추가 요청사항
+```
+
+**_agency/status.json:**
+
+```json
+{
+  "version": "2.1",
+  "updated_at": "-",
+  "stages": {
+    "pm": { "label": "PM", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/sitemap.md"] },
+    "design": { "label": "Design", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/design-system.md"] },
+    "contract": { "label": "Contract", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/contract.md"] },
+    "fe": { "label": "FE", "status": "pending", "completed_at": null, "notes": "", "artifacts": [] },
+    "be": { "label": "BE", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/api-spec.md"] },
+    "qa": { "label": "QA", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/qa-report.md"] },
+    "devops": { "label": "DevOps", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/handover.md"] }
+  }
+}
+```
+
+**_agency/status.md:**
+
+```markdown
+# 프로젝트 파이프라인 상태
+
+> 이 파일은 사람이 읽는 뷰입니다. 실제 게이트 판정과 업데이트는 _agency/status.json 기준으로 진행합니다.
+
+| 단계 | 상태 | 완료일 | 비고 |
+|------|------|--------|------|
+| PM | ⏳ 대기 | - | - |
+| Design | ⏳ 대기 | - | - |
+| Contract | ⏳ 대기 | - | - |
+| FE | ⏳ 대기 | - | - |
+| BE | ⏳ 대기 | - | - |
+| QA | ⏳ 대기 | - | - |
+| DevOps | ⏳ 대기 | - | - |
 ```
 
 ### Step 5 — 완료 메시지 출력

@@ -34,9 +34,25 @@ args에서 URL 또는 데이터 폴더 경로를 파싱한다.
 - `--full` → Step 1~6 전체 순차 실행
 - 옵션 없이 URL만 → Step 0만 실행 후 안내
 
-`_audit/` 폴더가 없으면 생성한다.
+먼저 Bash로 공용 runtime을 확인한다:
 
-`_audit/target.md`를 아래 내용으로 생성한다:
+```bash
+~/.webstart/bin/webstart-audit doctor
+```
+
+runtime이 없다면 아래를 안내한다:
+
+```bash
+bash install.sh
+```
+
+이후 `_audit/` 폴더 구조를 runtime으로 초기화한다:
+
+```bash
+~/.webstart/bin/webstart-audit init --project-dir .
+```
+
+기본 `target.md` 형식은 아래와 같다:
 
 ```markdown
 # 분석 대상 정보
@@ -45,77 +61,28 @@ args에서 URL 또는 데이터 폴더 경로를 파싱한다.
 - **사이트명:** (사이트 title 태그에서 추출 시도)
 - **URL:** {입력된 URL}
 - **사이트 유형:** (분석 후 기입)
-- **분석 목적:** (사용자에게 질문)
+- **분석 목적:** 기존 사이트 역설계 및 리뉴얼 기획 참고
 - **고객 제공 권한:** 공개 페이지만
 
 ## 입력 데이터
-- [x] URL 자동 수집 (Playwright)
+- [x] URL 자동 수집 (webstart-audit runtime)
 - [ ] 추가 데이터 (사용자 제공 시 체크)
 
 ## 특이사항
 (분석 시 참고할 사항)
 ```
 
-URL이 제공된 경우 Bash로 아래 순서로 실행하여 기본 데이터를 자동 수집한다:
-
-먼저 `_audit/` 폴더에서 playwright 로컬 패키지를 확인하고 없으면 설치한다:
+URL이 제공된 경우 Bash로 runtime crawl을 실행하여 기본 데이터를 자동 수집한다:
 
 ```bash
-cd _audit && [ -d node_modules/playwright ] || npm install playwright --save && npx playwright install chromium --with-deps 2>/dev/null; cd ..
+~/.webstart/bin/webstart-audit crawl "{URL}" --project-dir . --max-pages 8 --max-depth 2
 ```
 
-이후 수집 스크립트를 실행한다:
+> `crawl`은 `_audit/target.md`, `_audit/status.json`, `_audit/status.md`,
+> `_audit/scraped-data.json`, `_audit/raw/crawl-data.json`,
+> `_audit/derived/pages.json`, `_audit/screenshots/`를 함께 갱신한다.
 
-```bash
-node -e "
-const { chromium } = require('./_audit/node_modules/playwright');
-(async () => {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  await page.goto('{URL}', { waitUntil: 'networkidle', timeout: 30000 });
-
-  // 1. HTML <head> 추출
-  const head = await page.evaluate(() => document.head.innerHTML);
-
-  // 2. 전체 메뉴/네비게이션 텍스트 + 링크
-  const navLinks = await page.evaluate(() => {
-    const links = Array.from(document.querySelectorAll('nav a, header a, [role=navigation] a'));
-    return links.map(a => ({ text: a.textContent.trim(), href: a.href }));
-  });
-
-  // 3. 사용된 외부 스크립트
-  const scripts = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll('script[src]')).map(s => s.src);
-  });
-
-  // 4. 사용된 스타일시트
-  const styles = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(l => l.href);
-  });
-
-  // 5. 주요 컬러 추출 (computed styles)
-  const colors = await page.evaluate(() => {
-    const els = document.querySelectorAll('*');
-    const colorSet = new Set();
-    for (let i = 0; i < Math.min(els.length, 200); i++) {
-      const style = getComputedStyle(els[i]);
-      colorSet.add(style.color);
-      colorSet.add(style.backgroundColor);
-    }
-    return Array.from(colorSet).filter(c => c !== 'rgba(0, 0, 0, 0)');
-  });
-
-  console.log(JSON.stringify({ head, navLinks, scripts, styles, colors }, null, 2));
-  await browser.close();
-})();
-"
-```
-
-> 스크립트 실행이 실패하면 사용자에게 수동 입력을 안내한다.
-
-수집 결과를 `_audit/scraped-data.json`에 저장한다.
-
-`_audit/status.md`를 초기화한다:
+`_audit/status.md` 기본 형식은 아래와 같다:
 
 ```markdown
 # Audit Pipeline Status
@@ -139,7 +106,7 @@ const { chromium } = require('./_audit/node_modules/playwright');
 
 ```
 ✅ 분석 대상 등록 완료
-저장 위치: _audit/target.md, _audit/status.md
+저장 위치: _audit/target.md, _audit/status.json, _audit/status.md, _audit/scraped-data.json
 
 다음 단계 (순서대로 실행):
   /audit-ux    → 시각 정보 수집 (컬러, 폰트, 컴포넌트)
@@ -214,7 +181,13 @@ Step 1~4의 모든 보고서를 읽는다:
 
 생성 형식은 기존 `/webstart`가 만드는 `_agency/client-brief.md` 템플릿과 동일한 구조를 따른다.
 
-`_audit/status.md`에서 Step 5, 6을 ✅ 완료로 업데이트한다.
+가능하면 아래 runtime 명령으로 초안을 생성한다:
+
+```bash
+~/.webstart/bin/webstart-audit report-draft --project-dir .
+```
+
+runtime은 `_audit/report.md`, `_agency/client-brief.md`, `_audit/status.json`, `_audit/status.md`를 갱신한다.
 
 ### Step 7 — 완료 메시지
 

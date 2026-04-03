@@ -1,8 +1,8 @@
 # 1인 웹 에이전시 AI 시스템 — 설치 및 사용 가이드
 
 > 이 파일 하나로 새 컴퓨터에서 동일한 환경을 완전히 재현할 수 있습니다.
-> 버전: v2.1 (제작 + 검수 파이프라인)
-> 최종 업데이트: 2026-04-02
+> 버전: v2.2 (제작 + 검수 파이프라인)
+> 최종 업데이트: 2026-04-03
 
 ---
 
@@ -46,8 +46,9 @@
 | 항목 | 확인 방법 | 설치 명령 |
 |------|----------|----------|
 | Node.js 18+ | `node --version` | https://nodejs.org |
+| Python 3.10+ (고급 검수 런타임) | `python3 --version` | https://python.org |
 | Claude Code CLI | `claude --version` | `npm install -g @anthropic-ai/claude-code` |
-| Playwright (검수 파이프라인 필수) | `node -e "require('./_audit/node_modules/playwright')"` | 검수 시 `/audit` 스킬이 `_audit/` 폴더에 자동 설치 |
+| Playwright (검수 파이프라인 필수) | `~/.webstart/bin/webstart-audit doctor` | `install.sh`가 공용 audit runtime과 함께 설치 |
 | Git | `git --version` | https://git-scm.com |
 
 ---
@@ -64,9 +65,12 @@ cd WebStart
 # 2. 스킬 설치 (13개 스킬을 ~/.claude/skills/에 복사)
 bash install.sh
 
-# 3. Playwright는 검수 실행 시 _audit/ 폴더에 자동 설치됩니다 (별도 전역 설치 불필요)
+# 3. install.sh 는 공용 audit runtime(~/.webstart)도 함께 설치합니다.
+#    건너뛰려면: bash install.sh --skip-audit-runtime
 
-# 4. Claude Code 재시작
+# 4. Playwright Chromium은 공용 audit runtime 설치 과정에서 함께 준비됩니다.
+
+# 5. Claude Code 재시작
 # Claude Code를 종료하고 다시 실행하면 스킬이 인식됩니다.
 ```
 
@@ -84,6 +88,19 @@ bash install.sh
 # Claude Code 실행 후 아래 명령이 동작하면 성공
 /webstart test-project nextjs    # → 프로젝트 세팅 완료 (확인 후 rm -rf test-project/ 로 삭제)
 /audit https://example.com       # → 검수 대상 등록 및 Step 0 실행
+~/.webstart/bin/webstart-audit doctor  # → 고급 검수 런타임 설치 확인
+```
+
+### 고급 검수 런타임 빠른 확인
+
+```bash
+~/.webstart/bin/webstart-audit init --project-dir .
+~/.webstart/bin/webstart-audit crawl https://example.com --project-dir . --max-pages 8 --max-depth 2
+~/.webstart/bin/webstart-audit ux-scan --project-dir .
+~/.webstart/bin/webstart-audit ia-scan --project-dir .
+~/.webstart/bin/webstart-audit tech-scan --project-dir .
+~/.webstart/bin/webstart-audit api-scan --project-dir .
+~/.webstart/bin/webstart-audit report-draft --project-dir .
 ```
 
 ---
@@ -114,6 +131,7 @@ client-brief.md 작성
 **2. 클라이언트 브리프 작성**
 
 생성된 `_agency/client-brief.md` 파일을 열어 클라이언트 정보를 채웁니다.
+상태 파일은 `_agency/status.json`이 원본이며, `_agency/status.md`는 보기용으로 자동 갱신됩니다.
 
 **3. PM 기획**
 
@@ -149,6 +167,7 @@ FE/BE 병렬 개발 전 공통 계약(ERD, API, 공유 타입)을 `_agency/contr
 ```
 
 Contract 완료 후 병렬 실행 가능. 각각 `research.md` → `plan.md` → 코드 순서로 진행합니다.
+부분 작업만 끝난 경우 `_agency/status.json`에는 `partial`로 기록되고, plan.md 전체 완료 시에만 `done`으로 올라갑니다.
 
 **7. QA**
 
@@ -223,7 +242,19 @@ Step 0~6을 순차 자동 실행합니다. Playwright로 데이터를 자동 수
 _audit/
 ├── status.md        ← 진행 상태
 ├── target.md        ← 분석 대상 정보
-├── scraped-data.json ← Playwright 수집 데이터
+├── status.json      ← 기계 판정용 상태 원본
+├── scraped-data.json ← runtime 호환 수집 데이터
+├── raw/
+│   ├── crawl-data.json
+│   ├── tech-scan.json
+│   └── api-scan.json
+├── derived/
+│   ├── pages.json
+│   ├── link-graph.json
+│   ├── ux-summary.json
+│   ├── ia-summary.json
+│   ├── tech-summary.json
+│   └── api-summary.json
 ├── ux-report.md     ← 디자인 토큰, 컴포넌트, 접근성
 ├── ia-report.md     ← 사이트맵, 사용자 여정, SEO
 ├── tech-report.md   ← 기술 스택, 성능, 서드파티
@@ -248,6 +279,17 @@ _agency/
 추가 연계:
 - `/contract` 실행 시 `_audit/db-report.md`의 ERD 초안을 참고 입력으로 활용 가능
 - `/qa-check` 실행 시 `_audit/report.md`의 접근성/성능 이슈를 검증 항목에 포함 권장
+
+### 제작 파이프라인 상태 파일
+
+`_agency/status.json`이 게이트 판정용 단일 원본입니다.
+`_agency/status.md`는 사람이 읽는 표 뷰이며, 각 스킬이 status.json을 기준으로 다시 생성합니다.
+
+상태 값은 아래 네 가지를 사용합니다:
+- `pending`: 아직 시작 전
+- `partial`: 일부만 완료됨
+- `done`: 완료
+- `blocked`: 차단됨
 
 ---
 
@@ -458,7 +500,7 @@ claude.ai 웹에서 제작 파이프라인을 사용하려면 아래 Projects를
 
 | 문제 | 해결 |
 |------|------|
-| `npx playwright` 실행 안 됨 | `npm install -g playwright` 후 `npx playwright install chromium` |
+| `~/.webstart/bin/webstart-audit` 실행 안 됨 | `bash install.sh` 재실행 후 `~/.webstart/bin/webstart-audit doctor` 로 확인 |
 | Chromium 다운로드 실패 | 네트워크 확인 후 재시도. 프록시 환경이면 `HTTPS_PROXY` 설정 |
 | 스크래핑 타임아웃 | 대상 사이트 응답 느림. `_audit/target.md`에 수동 데이터 입력 후 진행 |
 
@@ -481,7 +523,8 @@ bash install.sh
 
 ```bash
 # 상태 파일 확인
-cat _agency/status.md   # 제작 파이프라인
+cat _agency/status.json # 제작 파이프라인 원본
+cat _agency/status.md   # 제작 파이프라인 보기용
 cat _audit/status.md    # 검수 파이프라인
 ```
 
@@ -496,3 +539,9 @@ cat _audit/status.md    # 검수 파이프라인
 | [agency-ai-agent-plan.md](./agency-ai-agent-plan.md) | 제작 파이프라인 설계 |
 | [web-audit-agent-plan.md](./web-audit-agent-plan.md) | 검수 파이프라인 설계 |
 | [CHANGELOG.md](./CHANGELOG.md) | 버전별 변경 이력 |
+| [AUDIT-AUTOMATION-V3.md](./AUDIT-AUTOMATION-V3.md) | audit runtime 확장 설계 메모 |
+| [IMPROVEMENT-REPORT.md](./IMPROVEMENT-REPORT.md) | 후속 개선점 정리 |
+| [REVIEW-REPORT.md](./REVIEW-REPORT.md) | 1차 전수 검토 결과 |
+| [SESSION-REPORT.md](./SESSION-REPORT.md) | 세션 작업 기록 |
+
+위 네 문서는 사용자 사용 설명서가 아니라 repo 내부 의사결정과 작업 기록용 문서로 유지합니다.

@@ -18,8 +18,11 @@ allowed-tools:
 
 ### Step 1 — 게이트 확인
 
-`_agency/status.md`를 읽어라.
-QA 단계가 ✅ 완료 상태가 아니면 작업을 중단하고 출력해:
+먼저 `_agency/status.json`을 읽어라.
+파일이 없고 `_agency/status.md`만 있으면 현재 표 내용을 기준으로 `_agency/status.json`을 복원한 뒤 계속 진행해.
+게이트 판정은 항상 `status.json` 기준으로 한다.
+
+`stages.qa.status`가 `done`이 아니면 작업을 중단하고 출력해:
 > "QA가 완료되지 않았습니다. 먼저 /qa-check 를 실행하고 Critical 버그를 모두 해결하세요."
 
 ### Step 2 — 기술 스택 및 배포 환경 확인
@@ -80,7 +83,12 @@ QA 단계가 ✅ 완료 상태가 아니면 작업을 중단하고 출력해:
 
 ### Step 6 — 상태 업데이트
 
-배포 설정 완료 시 `_agency/status.md`의 DevOps 단계를 ✅ 완료로 업데이트해.
+배포 설정 완료 시 `_agency/status.json`에서 DevOps 단계를 아래처럼 갱신해:
+- `stages.devops.status = "done"`
+- `stages.devops.completed_at = {오늘 날짜}`
+- `stages.devops.artifacts`에 `_agency/handover.md` 반영
+
+마지막에 `_agency/status.md`를 사람이 읽는 뷰로 다시 생성해.
 
 ### Step 7 — 납품 문서 생성
 

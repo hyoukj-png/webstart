@@ -31,67 +31,20 @@ UX 단계가 ✅ 완료 상태가 아니면 작업을 중단하고 출력해:
 
 1. `_audit/target.md` — URL, 권한 범위 확인
 2. `_audit/ux-report.md` — 네비게이션 컴포넌트 패턴 참조
-3. `_audit/scraped-data.json` — 자동 수집된 navLinks 데이터 활용 (있으면)
+3. `_audit/derived/ia-summary.json` — runtime IA 요약 결과 활용 (있으면)
+4. `_audit/scraped-data.json` — 자동 수집된 navLinks 데이터 활용 (있으면)
+5. `_audit/raw/crawl-data.json`, `_audit/derived/link-graph.json` — runtime 수집 결과 활용 (있으면)
 
 ### Step 3 — 사이트맵 수집
 
-scraped-data.json의 navLinks가 충분하지 않으면 Bash로 Playwright를 실행하여 전체 링크를 수집한다:
+`_audit/derived/ia-summary.json`이 없거나 충분하지 않으면 Bash로 runtime 수집을 실행한다:
 
 ```bash
-node -e "
-const { chromium } = require('./_audit/node_modules/playwright');
-(async () => {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  await page.goto('{URL}', { waitUntil: 'networkidle', timeout: 30000 });
-
-  // 모든 내부 링크 수집
-  const baseUrl = new URL('{URL}');
-  const links = await page.evaluate((origin) => {
-    return Array.from(document.querySelectorAll('a[href]'))
-      .map(a => ({ text: a.textContent.trim(), href: a.href, parent: a.closest('nav,header,footer,.menu,.sidebar')?.tagName || 'BODY' }))
-      .filter(l => l.href.startsWith(origin) || l.href.startsWith('/'))
-      .filter(l => l.text.length > 0 && l.text.length < 100);
-  }, baseUrl.origin);
-
-  // 메타데이터 수집
-  const meta = await page.evaluate(() => ({
-    title: document.title,
-    description: document.querySelector('meta[name=description]')?.content || '',
-    ogTitle: document.querySelector('meta[property=\"og:title\"]')?.content || '',
-    ogDescription: document.querySelector('meta[property=\"og:description\"]')?.content || '',
-    canonical: document.querySelector('link[rel=canonical]')?.href || '',
-    h1: Array.from(document.querySelectorAll('h1')).map(h => h.textContent.trim()),
-    h2: Array.from(document.querySelectorAll('h2')).map(h => h.textContent.trim())
-  }));
-
-  // 주요 하위 페이지 메타도 수집 (상위 5개)
-  const subPages = links
-    .filter(l => l.parent !== 'BODY')
-    .slice(0, 5);
-
-  const subMeta = [];
-  for (const link of subPages) {
-    try {
-      await page.goto(link.href, { waitUntil: 'domcontentloaded', timeout: 10000 });
-      await page.waitForTimeout(1000); // rate limit 준수
-      const m = await page.evaluate(() => ({
-        url: location.href,
-        title: document.title,
-        description: document.querySelector('meta[name=description]')?.content || '',
-        h1: Array.from(document.querySelectorAll('h1')).map(h => h.textContent.trim())
-      }));
-      subMeta.push(m);
-    } catch(e) { /* skip */ }
-  }
-
-  console.log(JSON.stringify({ links, meta, subMeta }, null, 2));
-  await browser.close();
-})();
-"
+~/.webstart/bin/webstart-audit crawl "{URL}" --project-dir . --max-pages 8 --max-depth 2
+~/.webstart/bin/webstart-audit ia-scan --project-dir .
 ```
 
-> rate limit 준수: 페이지 간 최소 1초 대기.
+> rate limit 준수: runtime이 기본 1초 간격으로 방문한다.
 
 ### Step 4 — 사이트맵 재구성
 
@@ -158,6 +111,9 @@ SEO 개선 제안:
 
 ### Step 8 — 산출물 저장
 
+가능하면 `_audit/derived/ia-summary.json`을 단일 원본으로 사용하고,
+부족한 항목만 `_audit/scraped-data.json`과 `_audit/raw/crawl-data.json`으로 보완한다.
+
 위의 분석 결과 전체를 `_audit/ia-report.md`에 저장한다.
 기존 내용이 있으면 덮어쓴다.
 
@@ -174,7 +130,8 @@ SEO 개선 제안:
 
 ### Step 9 — 상태 업데이트
 
-`_audit/status.md`에서 IA 단계를 ✅ 완료로 업데이트한다.
+runtime이 생성한 `_audit/status.json`, `_audit/status.md`를 확인하고
+IA 단계가 `done`인지 검토한다. 수동 보완이 필요하면 notes에 반영한다.
 
 ### Step 10 — 완료 메시지
 

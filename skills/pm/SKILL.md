@@ -53,21 +53,45 @@ client-brief.md 내용을 분석하여 아래 항목을 작성해:
 
 ### Step 4 — 파이프라인 상태 업데이트
 
-`_agency/status.md`를 읽고 PM 단계를 완료로 표시해.
-status.md가 없으면 새로 만들어:
+`_agency/status.json`을 진실 원본으로 사용해.
+파일이 없으면 아래 구조로 새로 만들고, 이후 `_agency/status.md`는 사람이 읽는 뷰로만 갱신해:
 
+```json
+{
+  "version": "2.1",
+  "updated_at": "{오늘 날짜}",
+  "stages": {
+    "pm": { "label": "PM", "status": "done", "completed_at": "{오늘 날짜}", "notes": "", "artifacts": ["_agency/sitemap.md"] },
+    "design": { "label": "Design", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/design-system.md"] },
+    "contract": { "label": "Contract", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/contract.md"] },
+    "fe": { "label": "FE", "status": "pending", "completed_at": null, "notes": "", "artifacts": [] },
+    "be": { "label": "BE", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/api-spec.md"] },
+    "qa": { "label": "QA", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/qa-report.md"] },
+    "devops": { "label": "DevOps", "status": "pending", "completed_at": null, "notes": "", "artifacts": ["_agency/handover.md"] }
+  }
+}
 ```
+
+PM 완료 시:
+- `stages.pm.status = "done"`
+- `stages.pm.completed_at = {오늘 날짜}`
+- downstream 단계(`design`, `contract`, `fe`, `be`, `qa`, `devops`)는 모두 `pending`으로 재설정
+- `_agency/status.md`를 아래 형식으로 다시 생성
+
+```markdown
 # 프로젝트 파이프라인 상태
 
-| 단계 | 상태 | 완료일 |
-|------|------|--------|
-| PM | ✅ 완료 | {오늘 날짜} |
-| Design | ⏳ 대기 | - |
-| Contract | ⏳ 대기 | - |
-| FE | ⏳ 대기 | - |
-| BE | ⏳ 대기 | - |
-| QA | ⏳ 대기 | - |
-| DevOps | ⏳ 대기 | - |
+> 이 파일은 사람이 읽는 뷰입니다. 실제 게이트 판정과 업데이트는 _agency/status.json 기준으로 진행합니다.
+
+| 단계 | 상태 | 완료일 | 비고 |
+|------|------|--------|------|
+| PM | ✅ 완료 | {오늘 날짜} | _agency/sitemap.md |
+| Design | ⏳ 대기 | - | - |
+| Contract | ⏳ 대기 | - | - |
+| FE | ⏳ 대기 | - | - |
+| BE | ⏳ 대기 | - | - |
+| QA | ⏳ 대기 | - | - |
+| DevOps | ⏳ 대기 | - | - |
 ```
 
 ### Step 5 — 완료 메시지

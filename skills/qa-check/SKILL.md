@@ -19,8 +19,11 @@ allowed-tools:
 
 ### Step 1 — 게이트 확인
 
-`_agency/status.md`를 읽어라.
-FE와 BE 단계가 **모두** ✅ 완료 상태여야 한다.
+먼저 `_agency/status.json`을 읽어라.
+파일이 없고 `_agency/status.md`만 있으면 현재 표 내용을 기준으로 `_agency/status.json`을 복원한 뒤 계속 진행해.
+게이트 판정은 항상 `status.json` 기준으로 한다.
+
+FE와 BE 단계는 `stages.fe.status == "done"` 그리고 `stages.be.status == "done"`이어야 한다.
 하나라도 미완료면 작업을 중단하고 출력해:
 > "FE 또는 BE 개발이 완료되지 않았습니다. 두 단계 모두 완료 후 /qa-check 를 실행하세요."
 
@@ -100,8 +103,17 @@ FE와 BE 단계가 **모두** ✅ 완료 상태여야 한다.
 
 ### Step 6 — 상태 업데이트
 
-- Critical 버그 0개: `_agency/status.md`의 QA 단계를 ✅ 완료로 업데이트
-- Critical 버그 있음: ❌ 차단으로 업데이트
+- Critical 버그 0개:
+  - `stages.qa.status = "done"`
+  - `stages.qa.completed_at = {오늘 날짜}`
+  - `stages.qa.artifacts`에 `_agency/qa-report.md` 반영
+- Critical 버그 있음:
+  - `stages.qa.status = "blocked"`
+  - `stages.qa.completed_at = null`
+  - `stages.qa.notes`에 `Critical [N]개`를 기록
+  - `stages.devops.status = "pending"` 유지
+
+마지막에 `_agency/status.md`를 사람이 읽는 뷰로 다시 생성해.
 
 ### Step 7 — 완료 메시지
 

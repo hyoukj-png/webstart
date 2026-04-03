@@ -19,8 +19,11 @@ allowed-tools:
 
 ### Step 1 — 게이트 확인
 
-`_agency/status.md`를 읽어라.
-Contract 단계가 ✅ 완료 상태가 아니면 작업을 중단하고 출력해:
+먼저 `_agency/status.json`을 읽어라.
+파일이 없고 `_agency/status.md`만 있으면 현재 표 내용을 기준으로 `_agency/status.json`을 복원한 뒤 계속 진행해.
+게이트 판정은 항상 `status.json` 기준으로 한다.
+
+`stages.contract.status`가 `done`이 아니면 작업을 중단하고 출력해:
 > "API 계약이 확정되지 않았습니다. 먼저 /contract 를 실행하세요."
 
 ### Step 2 — 기술 스택 확인
@@ -76,8 +79,19 @@ args에 작업 범위가 명시된 경우 해당 범위만 구현해.
 
 ### Step 7 — 상태 업데이트
 
-args로 특정 컴포넌트/페이지만 구현한 경우(부분 작업)에는 status.md를 업데이트하지 않는다.
-plan.md의 모든 항목이 `[x]`로 완료된 경우에만 `_agency/status.md`의 FE 단계를 ✅ 완료로 업데이트해.
+args로 특정 컴포넌트/페이지만 구현한 경우(부분 작업)에는 `_agency/status.json`에서 FE 단계를 `partial`로 업데이트하고,
+`notes`에 이번에 끝낸 범위를 짧게 남겨라.
+
+plan.md의 모든 항목이 `[x]`로 완료된 경우에만 `_agency/status.json`의 FE 단계를 아래처럼 갱신해:
+- `stages.fe.status = "done"`
+- `stages.fe.completed_at = {오늘 날짜}`
+- `stages.fe.notes = ""`
+
+부분 작업이면:
+- `stages.fe.status = "partial"`
+- `stages.fe.completed_at = null`
+
+두 경우 모두 마지막에 `_agency/status.md`를 사람이 읽는 뷰로 다시 생성해.
 
 ### Step 8 — 완료 메시지
 

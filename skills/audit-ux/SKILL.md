@@ -29,91 +29,18 @@ allowed-tools:
 
 `_audit/target.md`를 읽어 분석 대상 URL과 권한 범위를 확인한다.
 
-`_audit/scraped-data.json`이 있으면 읽어 자동 수집된 데이터를 활용한다.
+`_audit/derived/ux-summary.json`이 있으면 가장 먼저 읽는다.
+없으면 `_audit/scraped-data.json`, `_audit/raw/crawl-data.json`, `_audit/derived/pages.json`을 읽어 다중 페이지 정보를 활용한다.
 없으면 사용자에게 아래 데이터 중 하나 이상을 요청한다:
 - HTML/CSS 코드 조각
 - 페이지 화면 캡처 또는 설명
 - 스크래핑 데이터
 
-URL이 있고 scraped-data.json이 없으면 Bash로 직접 Playwright를 실행하여 수집한다:
+URL이 있고 `_audit/derived/ux-summary.json`이 없으면 Bash로 runtime 수집을 실행한다:
 
 ```bash
-node -e "
-const { chromium } = require('./_audit/node_modules/playwright');
-(async () => {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-  await page.goto('{URL}', { waitUntil: 'networkidle', timeout: 30000 });
-
-  // 컬러 추출
-  const colors = await page.evaluate(() => {
-    const els = document.querySelectorAll('*');
-    const map = {};
-    for (let i = 0; i < Math.min(els.length, 300); i++) {
-      const s = getComputedStyle(els[i]);
-      ['color','backgroundColor','borderColor'].forEach(prop => {
-        const v = s[prop];
-        if (v && v !== 'rgba(0, 0, 0, 0)' && v !== 'transparent') {
-          map[v] = (map[v] || 0) + 1;
-        }
-      });
-    }
-    return Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0,20);
-  });
-
-  // 폰트 추출
-  const fonts = await page.evaluate(() => {
-    const els = document.querySelectorAll('h1,h2,h3,h4,h5,h6,p,a,span,button,li');
-    const map = {};
-    els.forEach(el => {
-      const s = getComputedStyle(el);
-      const key = s.fontFamily + '|' + s.fontSize + '|' + s.fontWeight;
-      if (!map[key]) map[key] = { family: s.fontFamily, size: s.fontSize, weight: s.fontWeight, tag: el.tagName, count: 0 };
-      map[key].count++;
-    });
-    return Object.values(map).sort((a,b) => b.count-a.count).slice(0,15);
-  });
-
-  // 버튼/입력 스타일
-  const components = await page.evaluate(() => {
-    const buttons = Array.from(document.querySelectorAll('button, a.btn, [class*=button], input[type=submit]'));
-    const inputs = Array.from(document.querySelectorAll('input[type=text], input[type=email], textarea'));
-    return {
-      buttons: buttons.slice(0,5).map(b => ({
-        text: b.textContent.trim().slice(0,30),
-        styles: {
-          bg: getComputedStyle(b).backgroundColor,
-          color: getComputedStyle(b).color,
-          borderRadius: getComputedStyle(b).borderRadius,
-          padding: getComputedStyle(b).padding
-        }
-      })),
-      inputs: inputs.slice(0,3).map(i => ({
-        type: i.type,
-        styles: {
-          border: getComputedStyle(i).border,
-          borderRadius: getComputedStyle(i).borderRadius,
-          padding: getComputedStyle(i).padding
-        }
-      }))
-    };
-  });
-
-  // 여백/레이아웃
-  const layout = await page.evaluate(() => {
-    const body = document.body;
-    const main = document.querySelector('main, [role=main], .container, .wrapper');
-    return {
-      bodyWidth: getComputedStyle(body).maxWidth,
-      mainWidth: main ? getComputedStyle(main).maxWidth : 'N/A',
-      mainPadding: main ? getComputedStyle(main).padding : 'N/A'
-    };
-  });
-
-  console.log(JSON.stringify({ colors, fonts, components, layout }, null, 2));
-  await browser.close();
-})();
-"
+~/.webstart/bin/webstart-audit crawl "{URL}" --project-dir . --max-pages 8 --max-depth 2
+~/.webstart/bin/webstart-audit ux-scan --project-dir .
 ```
 
 ### Step 3 — 디자인 토큰 분석
@@ -174,6 +101,9 @@ const { chromium } = require('./_audit/node_modules/playwright');
 
 ### Step 7 — 산출물 저장
 
+가능하면 `_audit/derived/ux-summary.json`을 단일 원본으로 사용하고,
+부족한 항목만 `_audit/scraped-data.json`과 페이지 설명으로 보완한다.
+
 위의 분석 결과 전체를 `_audit/ux-report.md`에 저장한다.
 기존 내용이 있으면 덮어쓴다.
 
@@ -189,7 +119,8 @@ const { chromium } = require('./_audit/node_modules/playwright');
 
 ### Step 8 — 상태 업데이트
 
-`_audit/status.md`에서 UX 단계를 ✅ 완료로 업데이트한다.
+runtime이 생성한 `_audit/status.json`, `_audit/status.md`를 확인하고
+UX 단계가 `done`인지 검토한다. 수동 보완이 필요하면 notes에 반영한다.
 
 ### Step 9 — 완료 메시지
 

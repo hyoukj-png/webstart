@@ -1,5 +1,65 @@
 # WebStart 변경 이력
 
+## v2.2 — 2026-04-03 (상태 관리 강화 + 문서 릴리스 정리)
+
+### 주요 변경
+
+- 제작 파이프라인의 상태 원본을 `_agency/status.json`으로 승격
+- `_agency/status.md`를 게이트 판정 파일이 아닌 사람이 읽는 뷰로 재정의
+- `/fe`, `/be` 부분 작업 상태를 `partial`, `/qa-check` 차단 상태를 `blocked`로 명시
+- `/pm`, `/design`, `/contract` 재실행 시 downstream 단계를 `pending`으로 되돌리는 규칙 추가
+- `scripts/lint-docs.sh` 추가, 설치 직후 핵심 문서 회귀 자동 검사
+- `audit-runtime/README.md`에 재설치, 수동 부트스트랩, 문제 해결 가이드 추가
+
+### 문서/운영 개선
+
+- `SETUP-GUIDE.md`를 v2.2 기준으로 갱신
+- `agency-ai-agent-plan.md`를 `status.json` 기반 파이프라인 설계로 업데이트
+- 내부 검토 문서(`IMPROVEMENT-REPORT.md`, `REVIEW-REPORT.md`, `SESSION-REPORT.md`, `AUDIT-AUTOMATION-V3.md`)를 repo 내부 참고 문서로 유지
+- `install.sh`에서 문서 lint를 자동 실행하고, runtime/skill 복사 시 캐시 파일을 제외
+
+### 파일 변경
+
+| 파일 | 상태 |
+|------|------|
+| `install.sh` | 수정 (runtime 동기화, 문서 lint 자동 실행, 캐시 제외) |
+| `scripts/lint-docs.sh` | 신규 |
+| `SETUP-GUIDE.md` | 수정 (v2.2 가이드 반영) |
+| `agency-ai-agent-plan.md` | 수정 (status.json 기반 상태 관리) |
+| `skills/webstart/SKILL.md` | 수정 (13개 스킬 체계, status.json 템플릿) |
+| `skills/pm/SKILL.md` | 수정 (status.json 원본 규칙) |
+| `skills/design/SKILL.md` | 수정 (status.json 게이트/리셋 규칙) |
+| `skills/contract/SKILL.md` | 수정 (status.json 게이트/리셋 규칙) |
+| `skills/fe/SKILL.md` | 수정 (`partial` 상태 규칙) |
+| `skills/be/SKILL.md` | 수정 (`partial` 상태 규칙) |
+| `skills/qa-check/SKILL.md` | 수정 (`blocked` 상태 규칙) |
+| `skills/devops/SKILL.md` | 수정 (status.json 게이트/완료 처리) |
+| `audit-runtime/README.md` | 수정 (운영 가이드 보강) |
+
+### 업그레이드 시 필수 작업
+
+**v2.1 → v2.2 업데이트 사용자**
+
+1. **스킬과 runtime 재설치**
+   ```bash
+   bash install.sh
+   ```
+
+2. **문서 lint 통과 확인**
+   ```bash
+   bash scripts/lint-docs.sh
+   ```
+
+3. **runtime 설치 확인**
+   ```bash
+   ~/.webstart/bin/webstart-audit doctor
+   ```
+
+4. **제작 파이프라인 상태 파일 확인**
+   새 프로젝트부터는 `_agency/status.json`이 원본이다.
+
+---
+
 ## v2.1 — 2026-04-02 (검수 파이프라인 추가)
 
 ### 신규 기능
@@ -42,7 +102,35 @@
 | `web-audit-agent-plan-review-report.md` | 신규 |
 | `web-audit-agent-plan-revision-report.md` | 신규 |
 | `install.sh` | 수정 (5개 스킬 안내 추가) |
-| `SETUP-GUIDE.md` | 수정 (v2.0 전면 개정) |
+| `SETUP-GUIDE.md` | 수정 (v2.1 전면 개정) |
+
+### 업그레이드 시 필수 작업
+
+**v2.0 → v2.1 업데이트 사용자**
+
+1. **공용 audit runtime 설치 확인**
+   `bash install.sh` 실행 시 `~/.webstart/bin/webstart-audit`와 Playwright Chromium이 함께 설치됩니다.
+   설치 확인:
+   ```bash
+   ~/.webstart/bin/webstart-audit doctor
+   ```
+
+2. **스킬 재설치**
+   ```bash
+   bash install.sh
+   ```
+
+3. **Claude Code 재시작** (스킬 인식 필요)
+
+4. **검수 파이프라인 테스트**
+   ```bash
+   /audit https://example.com  # 기본 동작 확인
+   ```
+
+### 알려진 제약사항
+
+- 검수 파이프라인(`/audit*`)은 claude.ai 웹 Projects에서 지원하지 않습니다. CLI 전용입니다.
+- audit runtime 또는 Playwright Chromium 설치가 없으면 검수 파이프라인이 실행되지 않습니다.
 
 ---
 

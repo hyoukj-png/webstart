@@ -1,10 +1,16 @@
 #!/bin/bash
 # 1인 웹 에이전시 AI 시스템 — 자동 설치 스크립트
-# 사용법: bash install.sh
+# 사용법: bash install.sh [--skip-audit-runtime]
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WEBSTART_HOME="${WEBSTART_HOME:-$HOME/.webstart}"
+SKIP_AUDIT_RUNTIME=0
+
+if [ "${1:-}" = "--skip-audit-runtime" ]; then
+  SKIP_AUDIT_RUNTIME=1
+fi
 
 echo ""
 echo "=== 1인 웹 에이전시 AI 시스템 설치 시작 ==="
@@ -19,6 +25,10 @@ fi
 
 SKILLS_SRC="$SCRIPT_DIR/skills"
 SKILLS_DEST="$HOME/.claude/skills"
+AUDIT_RUNTIME_SRC="$SCRIPT_DIR/audit-runtime"
+AUDIT_RUNTIME_DEST="$WEBSTART_HOME/audit-runtime"
+AUDIT_RUNTIME_SETUP="$SCRIPT_DIR/scripts/setup-audit-runtime.sh"
+DOC_LINT_SCRIPT="$SCRIPT_DIR/scripts/lint-docs.sh"
 
 # 스킬 디렉토리 존재 확인
 if [ ! -d "$SKILLS_SRC" ]; then
@@ -31,9 +41,57 @@ for skill_dir in "$SKILLS_SRC"/*/; do
   skill_name=$(basename "$skill_dir")
   dest="$SKILLS_DEST/$skill_name"
   mkdir -p "$dest"
-  cp "$skill_dir/SKILL.md" "$dest/SKILL.md"
+
+  if command -v rsync &> /dev/null; then
+    rsync -a --delete --exclude='._*' --exclude='__pycache__/' --exclude='*.pyc' "$skill_dir" "$dest/"
+  else
+    rm -rf "$dest"
+    mkdir -p "$dest"
+    cp -R "$skill_dir"/. "$dest"/
+    find "$dest" -name '._*' -delete
+    find "$dest" -name '__pycache__' -type d -exec rm -rf {} +
+    find "$dest" -name '*.pyc' -type f -delete
+  fi
+
   echo "[완료] /$skill_name 스킬 설치"
 done
+
+# 공용 audit runtime 복사
+if [ -d "$AUDIT_RUNTIME_SRC" ]; then
+  mkdir -p "$WEBSTART_HOME"
+
+  if command -v rsync &> /dev/null; then
+    rsync -a --delete --exclude='._*' --exclude='__pycache__/' --exclude='*.pyc' "$AUDIT_RUNTIME_SRC"/ "$AUDIT_RUNTIME_DEST"/
+  else
+    rm -rf "$AUDIT_RUNTIME_DEST"
+    mkdir -p "$AUDIT_RUNTIME_DEST"
+    cp -R "$AUDIT_RUNTIME_SRC"/. "$AUDIT_RUNTIME_DEST"/
+    find "$AUDIT_RUNTIME_DEST" -name '._*' -delete
+    find "$AUDIT_RUNTIME_DEST" -name '__pycache__' -type d -exec rm -rf {} +
+    find "$AUDIT_RUNTIME_DEST" -name '*.pyc' -type f -delete
+  fi
+
+  echo "[완료] 공용 audit runtime 동기화: $AUDIT_RUNTIME_DEST"
+fi
+
+if [ "$SKIP_AUDIT_RUNTIME" -eq 0 ] && [ -x "$AUDIT_RUNTIME_SETUP" ] && [ -d "$AUDIT_RUNTIME_DEST" ]; then
+  echo ""
+  echo "=== audit runtime 부트스트랩 ==="
+  echo ""
+  if bash "$AUDIT_RUNTIME_SETUP" "$AUDIT_RUNTIME_DEST"; then
+    echo "[완료] audit runtime 설치"
+  else
+    echo "[경고] audit runtime 자동 설치에 실패했습니다."
+    echo "       수동 실행: bash scripts/setup-audit-runtime.sh"
+  fi
+fi
+
+if [ -f "$DOC_LINT_SCRIPT" ]; then
+  echo ""
+  echo "=== 문서 일관성 검사 ==="
+  echo ""
+  bash "$DOC_LINT_SCRIPT"
+fi
 
 echo ""
 echo "=== 설치 완료 ($(ls "$SKILLS_SRC" | wc -l | tr -d ' ')개 스킬) ==="
@@ -61,6 +119,7 @@ echo "다음 단계:"
 echo "  1. Claude Code를 재시작하세요."
 echo "  2. 새 프로젝트 시작: /webstart 프로젝트명 nextjs"
 echo "  3. 기존 사이트 분석: /audit https://example.com"
+echo "  4. 고급 audit runtime 확인: ~/.webstart/bin/webstart-audit doctor"
 echo ""
 echo "Claude.ai Projects 설정은 SETUP-GUIDE.md 의 Step 2를 참고하세요."
 echo ""
